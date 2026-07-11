@@ -1,0 +1,199 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix dc: <http://purl.org/dc/elements/1.1/>.
+@prefix grddl: <http://www.w3.org/2003/g/data-view#>.
+@prefix xml: <http://www.w3.org/XML/1998/namespace>.
+@prefix ont: <http://example.org/ontology#>.
+
+<http://example.org/ontology> a owl:Ontology;
+rdfs:comment "RDF/OWL ontology converted from a Cypher graph schema.";
+rdfs:label "Graph Schema Ontology".
+
+#################################################################
+
+# Classes
+
+#################################################################
+
+# http://example.org/ontology#City
+
+ont:City
+a owl:Class;
+rdfs:label "City"@en.
+
+# http://example.org/ontology#Person
+
+ont:Person
+a owl:Class;
+rdfs:label "Person";
+rdfs:subClassOf [
+a owl:Restriction;
+owl:onProperty ont:associatedWith;
+owl:someValuesFrom ont:City
+], [
+a owl:Restriction;
+owl:onProperty ont:locatedIn;
+owl:someValuesFrom ont:City
+], [
+a owl:Restriction;
+owl:onProperty ont:locatedIn;
+owl:someValuesFrom ont:City
+].
+
+# http://example.org/ontology#Place
+
+ont:Place
+a owl:Class;
+rdfs:label "Place".
+
+# http://example.org/ontology#Source
+
+ont:Source
+a owl:Class;
+rdfs:label "Source".
+
+# http://example.org/ontology#Thing
+
+ont:Thing
+a owl:Class;
+rdfs:label "Thing".
+
+# http://example.org/ontology#Year
+
+ont:Year
+a owl:Class;
+rdfs:label "Year".
+
+# http://www.w3.org/2002/07/owl#Country
+
+owl:Country
+a owl:Class;
+rdfs:label "Country"@en.
+
+#################################################################
+
+# Object Properties
+
+#################################################################
+
+# http://example.org/ontology#associatedWith
+
+ont:associatedWith
+a owl:ObjectProperty;
+rdfs:label "ASSOCIATED_WITH";
+rdfs:subPropertyOf owl:topObjectProperty;
+rdfs:domain [
+a owl:Class;
+owl:unionOf (ont:Person ont:Place ont:Thing)
+];
+rdfs:range [
+a owl:Class;
+owl:unionOf (ont:Person ont:Place ont:Thing ont:Year)
+].
+
+# http://example.org/ontology#locatedIn
+
+ont:locatedIn
+a owl:ObjectProperty;
+rdfs:label "LOCATED_IN";
+rdfs:subPropertyOf owl:topObjectProperty;
+rdfs:domain ont:City, owl:Country, [
+a owl:Class;
+owl:unionOf (ont:Person ont:Place ont:Thing)
+];
+rdfs:range ont:City, ont:Person.
+
+# http://example.org/ontology#mention
+
+ont:mention
+a owl:ObjectProperty;
+rdfs:label "MENTION";
+rdfs:subPropertyOf owl:topObjectProperty;
+rdfs:domain ont:Source;
+rdfs:range [
+a owl:Class;
+owl:unionOf (ont:Person ont:Place ont:Thing)
+].
+
+#################################################################
+
+# Data Properties
+
+#################################################################
+
+# http://example.org/ontology#description
+
+ont:description
+a owl:DatatypeProperty;
+rdfs:label "description";
+rdfs:subPropertyOf owl:topDataProperty;
+rdfs:domain ont:Source;
+rdfs:range xsd:string.
+
+# http://example.org/ontology#name
+
+ont:name
+a owl:DatatypeProperty;
+rdfs:label "name";
+rdfs:subPropertyOf owl:topDataProperty;
+rdfs:domain [
+a owl:Class;
+owl:unionOf (ont:City ont:Person ont:Place ont:Source ont:Thing ont:Year)
+];
+rdfs:range xsd:string.
+
+# http://example.org/ontology#url
+
+ont:url
+a owl:DatatypeProperty;
+rdfs:label "url";
+rdfs:subPropertyOf owl:topDataProperty;
+rdfs:domain ont:Source;
+rdfs:range xsd:string.
+
+#################################################################
+
+# Annotation Properties
+
+#################################################################
+
+#################################################################
+
+# Individuals
+
+#################################################################
+
+# http://www.w3.org/2002/07/owl#Atlanta
+
+owl:Atlanta
+a owl:NamedIndividual, ont:City;
+rdfs:label "Atlanta"@en.
+
+# http://www.w3.org/2002/07/owl#Jane_Doe
+
+owl:Jane_Doe
+a owl:NamedIndividual, ont:Person;
+rdfs:label "Jane Doe"@en;
+ont:locatedIn owl:San_Francisco.
+
+# http://www.w3.org/2002/07/owl#San_Francisco
+
+owl:San_Francisco
+a owl:NamedIndividual, ont:City;
+rdfs:label "San Francisco"@en;
+ont:locatedIn owl:USA.
+
+# http://www.w3.org/2002/07/owl#timestamp-1783753415614
+
+owl:timestamp-1783753415614
+a owl:NamedIndividual, ont:Person;
+rdfs:label "John Doe";
+ont:locatedIn owl:Atlanta.
+
+# http://www.w3.org/2002/07/owl#USA
+
+owl:USA
+a owl:NamedIndividual, owl:Country;
+rdfs:label "USA"@en.

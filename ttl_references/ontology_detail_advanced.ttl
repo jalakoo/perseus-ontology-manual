@@ -1,0 +1,263 @@
+@prefix ont: <http://example.org/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+#################################################################
+#    Ontology Metadata
+#################################################################
+
+<http://example.org/ontology> a owl:Ontology ;
+    rdfs:comment "An ontology for the use case of a company organisational chart, capturing employment relationships, managerial hierarchies, and the management of external relationships with clients, vendors, investors, research institutions, and communities."@en .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+ont:employs a owl:ObjectProperty ;
+    rdfs:comment "Represents the formal contractual relationship by which an organization engages an individual as a member of its workforce."@en ;
+    rdfs:label "employs"@en ;
+    rdfs:domain ont:Company ;
+    rdfs:range ont:Person ;
+    owl:inverseOf ont:isEmployedBy .
+
+ont:isEmployedBy a owl:ObjectProperty ;
+    rdfs:comment "Indicates that a person is formally engaged as a member of the workforce of a company."@en ;
+    rdfs:label "is employed by"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range ont:Company ;
+    owl:inverseOf ont:employs .
+
+ont:managesClientRelationship a owl:ObjectProperty ;
+    rdfs:comment "Represents the professional responsibility of an individual for maintaining and developing the commercial relationship with a client organisation."@en ;
+    rdfs:label "manages client relationship"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range ont:Client ;
+    rdfs:subPropertyOf ont:managesExternalRelationship .
+
+ont:managesExternalRelationship a owl:ObjectProperty ;
+    rdfs:comment "A general property representing the professional responsibility of an individual for overseeing a relationship with an external party, including clients, vendors, investors, research institutions, and communities."@en ;
+    rdfs:label "manages external relationship"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range ont:Agent .
+
+ont:managesVendorRelationship a owl:ObjectProperty ;
+    rdfs:comment "Represents the professional responsibility of an individual for overseeing and coordinating the working relationship with an external supplier or partner."@en ;
+    rdfs:label "manages vendor relationship"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range ont:Vendor ;
+    rdfs:subPropertyOf ont:managesExternalRelationship .
+
+ont:reportsTo a owl:ObjectProperty,
+        owl:AsymmetricProperty,
+        owl:IrreflexiveProperty ;
+    rdfs:comment "Represents the direct managerial accountability relationship in which one party is supervised by another within an organisational hierarchy."@en ;
+    rdfs:label "reports to"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range ont:Agent .
+
+
+#################################################################
+#    Datatype Properties
+#################################################################
+
+ont:hasEngagementStatus a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:comment "A qualitative descriptor indicating the current stage or nature of a commercial relationship with a client."@en ;
+    rdfs:label "has engagement status"@en ;
+    rdfs:domain ont:Client ;
+    rdfs:range xsd:token .
+
+ont:hasHeadcount a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:comment "The total number of individuals currently employed by an organisation."@en ;
+    rdfs:label "has headcount"@en ;
+    rdfs:domain ont:Company ;
+    rdfs:range xsd:nonNegativeInteger .
+
+ont:hasIndustry a owl:DatatypeProperty ;
+    rdfs:comment "The primary market sector or field of activity in which an organisation operates."@en ;
+    rdfs:label "has industry"@en ;
+    rdfs:domain ont:Company ;
+    rdfs:range xsd:token .
+
+ont:hasJobTitle a owl:DatatypeProperty ;
+    rdfs:comment "The official designation of a person's role or position within an organisation."@en ;
+    rdfs:label "has job title"@en ;
+    rdfs:domain ont:Person ;
+    rdfs:range xsd:normalizedString .
+
+ont:hasMemberCount a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:comment "The total number of participants or members belonging to a community or group."@en ;
+    rdfs:label "has member count"@en ;
+    rdfs:domain ont:Community ;
+    rdfs:range xsd:nonNegativeInteger .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+ont:AbstractEntity a owl:Class ;
+    rdfs:comment "Non-material entities existing conceptually, informationally, or socially, without physical form."@en ;
+    rdfs:label "Abstract Entity"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:Agent,
+        ont:Material,
+        ont:Process,
+        ont:Quality,
+        ont:SpatialRegion,
+        ont:TemporalRegion .
+
+ont:Agent a owl:Class ;
+    rdfs:comment "Entities capable of intentional action and decision-making, including persons, organisations, and autonomous systems."@en ;
+    rdfs:label "Agent"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Material,
+        ont:Process,
+        ont:Quality,
+        ont:SpatialRegion,
+        ont:TemporalRegion .
+
+ont:Client a owl:Class ;
+    rdfs:comment "An organisation that purchases or contracts for products or services from another organisation."@en ;
+    rdfs:label "Client"@en ;
+    rdfs:subClassOf ont:CommercialPartner ;
+    owl:disjointWith ont:Vendor .
+
+ont:CommercialPartner a owl:Class ;
+    rdfs:comment "An external organisation engaged in a defined commercial relationship with another organisation."@en ;
+    rdfs:label "Commercial Partner"@en ;
+    rdfs:subClassOf ont:Organization ;
+    owl:disjointWith ont:Company,
+        ont:GoverningBody,
+        ont:Investor,
+        ont:ResearchInstitution .
+
+ont:Community a owl:Class ;
+    rdfs:comment "A group of individuals or organisations united by shared interests, practices, or identity, without formal corporate structure."@en ;
+    rdfs:label "Community"@en ;
+    rdfs:subClassOf ont:Agent ;
+    owl:disjointWith ont:Organization,
+        ont:Person .
+
+ont:Company a owl:Class ;
+    rdfs:comment "A commercial business organisation formed to engage in enterprise, trade, or the provision of services."@en ;
+    rdfs:label "Company"@en ;
+    rdfs:subClassOf ont:Organization ;
+    owl:disjointWith ont:CommercialPartner,
+        ont:GoverningBody,
+        ont:Investor,
+        ont:ResearchInstitution .
+
+ont:ExternalCommunity a owl:Class ;
+    rdfs:comment "A community of stakeholders, users, or practitioners that exists outside an organisation but engages with its products, platforms, or mission."@en ;
+    rdfs:label "External Community"@en ;
+    rdfs:subClassOf ont:Community .
+
+ont:GoverningBody a owl:Class ;
+    rdfs:comment "A formal group with authority to set policy, oversee operations, and make binding decisions for an organisation."@en ;
+    rdfs:label "Governing Body"@en ;
+    rdfs:subClassOf ont:Organization ;
+    owl:disjointWith ont:CommercialPartner,
+        ont:Company,
+        ont:Investor,
+        ont:ResearchInstitution .
+
+ont:Investor a owl:Class ;
+    rdfs:comment "An organisation that provides capital to a company in exchange for equity, returns, or other financial interests."@en ;
+    rdfs:label "Investor"@en ;
+    rdfs:subClassOf ont:Organization ;
+    owl:disjointWith ont:CommercialPartner,
+        ont:Company,
+        ont:GoverningBody,
+        ont:ResearchInstitution .
+
+ont:Material a owl:Class ;
+    rdfs:comment "Physical things with clear boundaries and material substance, including manufactured goods, natural objects, and physical artefacts."@en ;
+    rdfs:label "Material"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Agent,
+        ont:Process,
+        ont:Quality,
+        ont:SpatialRegion,
+        ont:TemporalRegion .
+
+ont:Organization a owl:Class ;
+    rdfs:comment "A structured group of people with a shared purpose, governance, and identity."@en ;
+    rdfs:label "Organization"@en ;
+    rdfs:subClassOf ont:Agent ;
+    owl:disjointWith ont:Community,
+        ont:Person .
+
+ont:Person a owl:Class ;
+    rdfs:comment "An individual human being capable of intentional action and decision-making."@en ;
+    rdfs:label "Person"@en ;
+    rdfs:subClassOf ont:Agent ;
+    owl:disjointWith ont:Community,
+        ont:Organization .
+
+ont:Process a owl:Class ;
+    rdfs:comment "Occurrences that unfold over time, including events, activities, transactions, and transformations."@en ;
+    rdfs:label "Process"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Agent,
+        ont:Material,
+        ont:Quality,
+        ont:SpatialRegion,
+        ont:TemporalRegion .
+
+ont:Quality a owl:Class ;
+    rdfs:comment "Properties, attributes, or characteristics that describe and inhere in other entities."@en ;
+    rdfs:label "Quality"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Agent,
+        ont:Material,
+        ont:Process,
+        ont:SpatialRegion,
+        ont:TemporalRegion .
+
+ont:ResearchInstitution a owl:Class ;
+    rdfs:comment "An academic or scientific organisation dedicated to conducting research, generating knowledge, and advancing a field of study."@en ;
+    rdfs:label "Research Institution"@en ;
+    rdfs:subClassOf ont:Organization ;
+    owl:disjointWith ont:CommercialPartner,
+        ont:Company,
+        ont:GoverningBody,
+        ont:Investor .
+
+ont:SpatialRegion a owl:Class ;
+    rdfs:comment "Places, locations, and spatial extents in physical or conceptual space."@en ;
+    rdfs:label "Spatial Region"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Agent,
+        ont:Material,
+        ont:Process,
+        ont:Quality,
+        ont:TemporalRegion .
+
+ont:TemporalRegion a owl:Class ;
+    rdfs:comment "Time intervals, periods, and temporal extents, including durations and scheduled periods."@en ;
+    rdfs:label "Temporal Region"@en ;
+    rdfs:subClassOf owl:Thing ;
+    owl:disjointWith ont:AbstractEntity,
+        ont:Agent,
+        ont:Material,
+        ont:Process,
+        ont:Quality,
+        ont:SpatialRegion .
+
+ont:Vendor a owl:Class ;
+    rdfs:comment "An organisation that supplies goods, software, platforms, or services to another organisation."@en ;
+    rdfs:label "Vendor"@en ;
+    rdfs:subClassOf ont:CommercialPartner ;
+    owl:disjointWith ont:Client .
