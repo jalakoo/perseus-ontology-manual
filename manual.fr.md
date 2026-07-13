@@ -505,16 +505,32 @@ altLabels de `Company`) donne à l'extracteur plus de prise pour trouver des cor
 
 ### Relationships
 
-Les propriétés d'objet qui peuvent partir de cette classe. Ouvrir le menu déroulant montre toutes les
-propriétés définies dans l'ontologie (`ASSOCIATED_WITH`, `description`, `LOCATED_IN`, `MENTION`,
-`name`, `url` dans l'ontologie d'exemple), et c'est un choix multiple.
+Les relations qui peuvent *partir* de cette classe. Chaque ligne comporte **deux menus déroulants** :
+la **propriété**, puis la **classe à l'autre bout de celle-ci**.
 
-![Le menu déroulant Relationships sur une classe](manual_assets/fig-09-relationships-dropdown.png)
+Le menu de la propriété liste toutes les propriétés d'objet définies dans l'ontologie
+(`ASSOCIATED_WITH`, `description`, `LOCATED_IN`, `MENTION`, `name`, `url` dans l'ontologie d'exemple).
 
-Ajouter une propriété ici revient exactement à ajouter cette classe au **Domain** de cette propriété
-— vous dites « les instances de cette classe peuvent être le sujet de cette relation ». Vous pouvez
-le faire des deux côtés ; la boîte Relationships de la classe est le côté pratique quand vous
-raisonnez classe d'abord.
+![Le menu déroulant des propriétés sur une ligne Relationships](manual_assets/fig-09-relationships-dropdown.png)
+
+Une fois la propriété choisie, le second menu — **Enter a class name** — propose toutes les classes de
+l'ontologie. C'est la classe située de l'autre côté de la relation.
+
+![Après avoir choisi `has delegated authority from`, le second menu propose la classe cible](manual_assets/fig-09b-relationship-target-class.png)
+
+Lisez une ligne complète comme une phrase. `ManagingGeneralAgent` + `has delegated authority from` +
+`InsuranceCarrier` dit : *« un managing general agent peut détenir une délégation d'autorité d'un
+assureur. »*
+
+C'est exactement le même fait que le **Domain** et le **Range** de la propriété, saisi depuis l'autre
+côté : la classe que vous consultez entre dans le Domain de la propriété, et la classe que vous
+choisissez à droite entre dans son Range. Vous pouvez travailler des deux bouts — la boîte
+Relationships de la classe est le côté pratique quand vous raisonnez classe d'abord, les boîtes Domain
+et Range de la propriété le sont quand vous raisonnez relation d'abord. Voir
+[Le panneau de détail de la propriété](#le-panneau-de-détail-de-la-propriété).
+
+> L'onglet Properties fait foi. Si vous avez un doute sur ce qu'une ligne Relationships a réellement
+> affirmé, ouvrez la propriété là-bas et lisez son Domain et son Range.
 
 ### Parents et Children
 

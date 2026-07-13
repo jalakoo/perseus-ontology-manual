@@ -491,16 +491,33 @@ as altLabels of `Company`) gives the extractor more surface to match against.
 
 ### Relationships
 
-The object properties that can start at this class. Opening the dropdown shows every
-property defined in the ontology (`ASSOCIATED_WITH`, `description`, `LOCATED_IN`,
-`MENTION`, `name`, `url` in the sample ontology), and it is a multi-select.
+The relationships that can *start* at this class. Each row is **two dropdowns**: the
+**property**, and then the **class on the other end of it**.
 
-![The Relationships dropdown on a class](manual_assets/fig-09-relationships-dropdown.png)
+The property dropdown lists every object property defined in the ontology
+(`ASSOCIATED_WITH`, `description`, `LOCATED_IN`, `MENTION`, `name`, `url` in the sample
+ontology).
 
-Adding a property here is the same as adding this class to that property's **domain** —
-you are saying "instances of this class may be the subject of this relationship." You can
-do it from either side; the Relationships box on the class is the convenient side when
-you are thinking class-first.
+![The property dropdown on a class's Relationships row](manual_assets/fig-09-relationships-dropdown.png)
+
+Once a property is chosen, the second dropdown — **Enter a class name** — offers every
+class in the ontology. That is the class on the far side of the relationship.
+
+![After picking `has delegated authority from`, the second dropdown offers the target class](manual_assets/fig-09b-relationship-target-class.png)
+
+Read a completed row as a sentence. `ManagingGeneralAgent` + `has delegated authority
+from` + `InsuranceCarrier` says *"a managing general agent may have delegated authority
+from an insurance carrier."*
+
+This is the same fact as the property's **domain** and **range**, entered from the other
+side: the class you are looking at goes into the property's domain, and the class you pick
+on the right goes into its range. You can work from either end — the Relationships box on
+the class is the convenient side when you are thinking class-first, the Domain and Range
+boxes on the property are the convenient side when you are thinking edge-first. See
+[The property detail panel](#the-property-detail-panel).
+
+> The Properties tab is the ground truth. If you are ever unsure what a Relationships row
+> actually asserted, open the property there and read its Domain and Range.
 
 ### Parents and Children
 

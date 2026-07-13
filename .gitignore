@@ -1,6 +1,8 @@
 # Source recordings — large, and not needed to build the manual.
 # The frames used as figures have already been extracted into manual_assets/.
+0_SCRIPTS/
 1_SCREEN_RECORDINGS/
+2_EDITS/
 
 # Scratch notes
 Untitled.md
