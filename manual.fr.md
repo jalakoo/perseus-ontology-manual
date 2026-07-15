@@ -66,7 +66,8 @@ Utilisez-le pour :
 - Relire une ontologie que Perseus a générée depuis vos documents, et corriger ce qu'il a raté.
 - Ajouter une classe ou une relation que le générateur a manquée.
 - Renommer les choses pour que le graphe extrait utilise le vocabulaire de votre équipe.
-- Amorcer quelques entités connues (des individus) pour que l'extraction ait des points d'ancrage.
+- Déclarer quelques individus — valeurs d'énumération fixes, ou entités de référence — pour que
+  l'extraction ait des points d'ancrage contre lesquels réconcilier ses instances.
 
 Un éditeur d'ontologies est un éditeur de schéma. C'est plus proche, dans l'esprit, de l'édition
 d'un schéma de base de données que de l'édition de données — sauf que le « schéma » est ici
@@ -75,6 +76,13 @@ lui-même exprimé sous forme de graphe.
 ---
 
 ## 2. Concepts et vocabulaire
+
+> **Nouveau dans les ontologies ?** Deux références méritent de rester ouvertes à côté de ce
+> manuel. L'*[Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101-noy-mcguinness.html)*
+> de Noy & McGuinness — issu de Stanford, l'une des introductions de référence du domaine — est
+> la porte d'entrée en douceur vers les concepts ci-dessous. Pour les définitions précises et
+> normatives, la [référence OWL du W3C](https://www.w3.org/TR/owl-ref/) est le standard technique
+> vers lequel se tourner.
 
 ### Graphe
 
@@ -99,9 +107,10 @@ Une **ontologie** est le schéma du graphe : le vocabulaire et les règles. Elle
 `Person` et `City` sont des types de choses, que `LOCATED_IN` est une arête légale, et qu'elle
 peut aller d'une `Person` vers une `City` (mais pas, disons, d'une `Year` vers une `Year`).
 
-En termes relationnels, une ontologie, c'est grosso modo vos instructions `CREATE TABLE` plus vos
-contraintes de clé étrangère, sauf qu'elle est plus expressive et qu'elle est stockée comme donnée
-plutôt que comme DDL.
+En termes relationnels, définir une classe avec ses propriétés revient grosso modo à une instruction
+`CREATE TABLE`. Une relation entre deux classes joue le rôle d'une clé étrangère ; un attribut portant
+une valeur directe joue le rôle d'une simple colonne. Une ontologie est plus expressive que cela, et
+elle est stockée comme donnée plutôt que comme DDL.
 
 Une ontologie n'est *pas* vos données. Elle décrit la forme de vos données.
 
@@ -120,38 +129,65 @@ chevron de dépliage sur toute classe qui a des enfants.
 
 ### Individu
 
-Un **individu** est une instance précise et nommée d'une classe. `San Francisco` est un individu
-de la classe `City`. `Jane Doe` est un individu de la classe `Person`.
+Un **individu** est un membre précis et nommé d'une classe, déclaré *à l'intérieur de l'ontologie
+elle-même*. C'est la distinction qui fait trébucher : un individu n'est pas la même chose qu'une
+*instance*. Une instance est une chose concrète qui vit dans le graphe de connaissances — les données
+extraites de vos documents. Un individu, lui, vit dans l'ontologie, et vous l'y placez délibérément,
+pour l'une de deux raisons.
 
-La classe est à l'individu ce que `class Person` est à `new Person("Jane")` — le type face à une
-chose concrète de ce type.
+**Comme valeur d'énumération.** Quand une propriété ne doit jamais prendre qu'une valeur parmi un
+ensemble fixe, vous déclarez ces valeurs comme des individus. La Music Ontology, par exemple, déclare
+`Album` comme un individu nommé de la classe `ReleaseType` :
 
-Vous n'avez pas à déclarer chaque individu dans votre ontologie ; l'extraction en découvrira la
-plupart dans vos documents. Vous déclarez ceux dont vous voulez garantir l'existence, ou ceux
-auxquels vous voulez rattacher des faits connus.
+```turtle
+mo:Album  a  owl:NamedIndividual, mo:ReleaseType .
+```
+
+Un graphe de connaissances *utilise* alors cet individu comme valeur d'une propriété :
+
+```turtle
+ex:imagine  a  mo:MusicalWork ;
+            mo:release_type  mo:Album .
+```
+
+Ici l'individu `Album`, défini une seule fois dans l'ontologie, sert de type de sortie énuméré d'une
+œuvre musicale.
+
+**Comme fixture de test pour un raisonneur.** Vous pouvez aussi ajouter des individus pour
+« tester unitairement » l'ontologie : lancez un raisonneur sur une poignée d'individus écrits à la
+main et vérifiez qu'il infère ce que vous attendez (et signale les contradictions que vous attendez).
+Ces individus existent pour exercer le schéma, pas pour porter des données de production.
+
+Dans les deux cas, l'individu fait partie du schéma que vous rédigez. La plupart des choses concrètes
+de votre graphe final seront des *instances* découvertes par l'extraction, pas des individus que vous
+avez déclarés à la main.
 
 ### Propriété
 
-Une **propriété** est une arête nommée — le prédicat d'un triplet. Perseus les répartit en trois
-sortes, la même répartition qu'OWL, et elles ne se comportent pas pareil :
+Une **propriété** est une arête nommée — le prédicat d'un triplet. Vous pouvez définir autant de
+sortes de propriétés que nécessaire ; OWL en fournit trois par défaut, et ce sont ces trois-là que
+Perseus expose :
 
 | Sorte | Part de | Va vers | Exemple |
 | --- | --- | --- | --- |
-| **Propriété d'objet** (object property) | un individu | un autre individu | `LOCATED_IN`, `employs`, `manages` |
-| **Propriété de type de données** (datatype property) | un individu | une valeur littérale (chaîne, nombre, date) | `name`, `description`, `url` |
-| **Propriété d'annotation** (annotation property) | n'importe quelle ressource | des métadonnées sur le modèle lui-même | `rdfs:label`, `rdfs:comment` |
+| **Propriété d'objet** (object property) | une classe | une classe | `LOCATED_IN`, `employs`, `manages` |
+| **Propriété de type de données** (datatype property) | une classe | un type de données (chaîne, nombre, date) | `name`, `description`, `url` |
+| **Propriété d'annotation** (annotation property) | une classe | une classe ou un type de données | `rdfs:label`, `rdfs:comment` |
 
-C'est le côté droit qui décide de la sorte qu'il vous faut. Si la chose à droite est quelque chose
-que vous voudriez décrire plus avant — elle a ses propres attributs, ses propres relations — c'est
-une **propriété d'objet**. Si ce n'est qu'une valeur, une chaîne ou un nombre, c'est une
-**propriété de type de données**.
+Ces définitions vivent dans l'*ontologie*, elles relient donc des classes et des types de données, pas
+des individus concrets. `Person —LOCATED_IN→ City` est une définition de propriété ; le fait
+`Jane Doe —LOCATED_IN→ San Francisco` est une seule arête du graphe de connaissances qui la respecte.
 
-`Jane Doe LOCATED_IN San Francisco` est une propriété d'objet : San Francisco est une vraie entité
-avec ses propres faits. `Jane Doe name "Jane Doe"` est une propriété de type de données : la chaîne
-n'est qu'une chaîne. `employer` pointant vers une `Company` est une propriété d'objet ;
-`employerName` contenant une chaîne est une propriété de type de données. La première est
-généralement celle que vous voulez dans un graphe de connaissances — les liens sont tout l'intérêt
-du graphe.
+C'est le côté droit qui décide de la sorte qu'il vous faut. Si la chose à droite est une classe que
+vous voudriez décrire plus avant — elle a ses propres attributs, ses propres relations — c'est une
+**propriété d'objet**. Si ce n'est qu'une valeur, une chaîne ou un nombre, c'est une **propriété de
+type de données**.
+
+`Person LOCATED_IN City` est une propriété d'objet : une City est une vraie entité avec ses propres
+faits. `Person name` s'étendant sur une chaîne est une propriété de type de données : la chaîne n'est
+qu'une chaîne. `employer` pointant vers une `Company` est une propriété d'objet ; `employerName`
+contenant une chaîne est une propriété de type de données. La propriété d'objet est généralement celle
+que vous voulez dans un graphe de connaissances — les liens sont tout l'intérêt du graphe.
 
 Les propriétés d'annotation sont les intruses : elles portent de la documentation, pas des faits du
 domaine. Elles sont là pour les humains et les outils, et les raisonneurs les ignorent.
@@ -202,17 +238,19 @@ le modèle deviner.
 
 ### URI / IRI
 
-Chaque ressource d'une ontologie a un identifiant unique au monde, écrit comme une URL, affiché en
-gris en haut à droite de chaque panneau de détail :
+Chaque ressource d'une ontologie a un identifiant unique au monde — une **URI** (ou sa forme
+internationalisée, une **IRI**) — affiché en gris en haut à droite de chaque panneau de détail :
 
 ```
 http://www.w3.org/2002/07/owl#Country
 http://example.org/ontology#employs
 ```
 
-C'est un *identifiant*, pas une adresse — rien n'est téléchargé depuis là. Il existe pour que deux
-ontologies venant de deux équipes différentes puissent être fusionnées sans que `Person` entre en
-collision avec `Person`.
+Cela *ressemble* à une URL, mais ce n'en est pas une, et la différence compte. Une URL est une
+*adresse* : elle indique où télécharger quelque chose, et elle n'offre aucune garantie d'unicité. Une
+URI est un *identifiant* : rien n'est téléchargé depuis là, et sa seule raison d'être est d'être unique
+au monde. C'est cette unicité qui permet de fusionner deux ontologies venant de deux équipes
+différentes sans que le `Person` de l'une entre en collision avec le `Person` de l'autre.
 
 La partie après le `#` est le nom local, que Perseus dérive du nom que vous saisissez. Une ressource
 fraîchement créée et encore sans nom reçoit une URI provisoire contenant un horodatage
@@ -608,6 +646,12 @@ ensuite.
 
 L'onglet **Individuals** contient les entités concrètes et nommées. Le panneau de gauche liste chaque
 individu avec sa classe en gris à droite (`San Francisco — City`).
+
+> Les individus que vous déclarez ici vivent dans l'*ontologie*, pas dans le graphe extrait.
+> Déclarez-les pour les raisons vues sous [Individu](#individu) : comme valeurs d'énumération fixes,
+> comme entités de référence pour réconcilier les données extraites, ou comme fixtures de test pour un
+> raisonneur. Les choses concrètes que l'extraction tire de vos documents sont des *instances* dans le
+> graphe de connaissances — une couche distincte que cet éditeur ne montre pas.
 
 ![La liste Individuals. Chaque entrée montre sa classe à droite](manual_assets/fig-12b-individuals-list.png)
 

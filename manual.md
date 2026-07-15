@@ -65,7 +65,8 @@ The ontology editor is where you inspect and hand-tune that schema. Use it to:
 - Review an ontology that Perseus generated from your documents, and fix what it got wrong.
 - Add a class or a relationship the generator missed.
 - Rename things so the extracted graph uses your team's vocabulary.
-- Seed a few known entities (individuals) so extraction has anchors to attach to.
+- Declare a few individuals — fixed enumeration values, or reference entities — so
+  extraction has anchors to reconcile its instances against.
 
 An ontology editor is a schema editor. It is closer in spirit to editing a database schema
 than to editing data — except the "schema" here is itself expressed as a graph.
@@ -73,6 +74,12 @@ than to editing data — except the "schema" here is itself expressed as a graph
 ---
 
 ## 2. Concepts and Vocabulary
+
+> **New to ontologies?** Two references are worth keeping open alongside this manual.
+> Noy & McGuinness's [*Ontology Development 101*](https://protege.stanford.edu/publications/ontology_development/ontology101-noy-mcguinness.html)
+> — from Stanford, one of the standard introductions in the field — is the gentle way into
+> the concepts below. For precise, normative definitions, the
+> [W3C OWL Reference](https://www.w3.org/TR/owl-ref/) is the technical standard to reach for.
 
 ### Graph
 
@@ -97,9 +104,10 @@ An **ontology** is the schema of the graph: the vocabulary and the rules. It dec
 that `Person` and `City` are kinds of things, that `LOCATED_IN` is a legal edge, and
 that it may run from a `Person` to a `City` (but not, say, from a `Year` to a `Year`).
 
-In relational terms, an ontology is roughly your `CREATE TABLE` statements plus your
-foreign key constraints, except it is more expressive and it is stored as data rather
-than as DDL.
+In relational terms, defining a class together with its properties is roughly a
+`CREATE TABLE` statement. A relationship between two classes plays the role of a foreign
+key; an attribute holding a direct value plays the role of a plain column. An ontology is
+more expressive than this, and it is stored as data rather than as DDL.
 
 An ontology is *not* your data. It describes the shape of your data.
 
@@ -118,37 +126,65 @@ expand chevron on any class that has children.
 
 ### Individual
 
-An **individual** is one specific, named instance of a class. `San Francisco` is an
-individual of class `City`. `Jane Doe` is an individual of class `Person`.
+An **individual** is a specific, named member of a class that is declared *inside the
+ontology itself*. This is the distinction that trips people up: an individual is not the
+same thing as an *instance*. An instance is a concrete thing that lives in the knowledge
+graph — the data extracted from your documents. An individual lives in the ontology, and
+you put it there deliberately, for one of two reasons.
 
-Class is to individual as `class Person` is to `new Person("Jane")` — the type versus
-one concrete thing of that type.
+**As an enumeration value.** When a property should only ever take one of a fixed set of
+values, you declare those values as individuals. The Music Ontology, for example, declares
+`Album` as a named individual of class `ReleaseType`:
 
-You do not have to declare every individual in your ontology; extraction will discover
-most of them from your documents. You declare the ones you want to guarantee exist, or
-the ones you want to attach known facts to.
+```turtle
+mo:Album  a  owl:NamedIndividual, mo:ReleaseType .
+```
+
+A knowledge graph then *uses* that individual as the value of a property:
+
+```turtle
+ex:imagine  a  mo:MusicalWork ;
+            mo:release_type  mo:Album .
+```
+
+Here the individual `Album`, defined once in the ontology, serves as the enumerated release
+type of a musical work.
+
+**As a reasoner test fixture.** You can also add individuals to "unit-test" the ontology:
+run a reasoner over a handful of hand-written individuals and check that it infers what you
+expect (and flags the contradictions you expect). These individuals exist to exercise the
+schema, not to carry production data.
+
+In both cases the individual is part of the schema you author. Most of the concrete things
+in your finished graph will be *instances* discovered by extraction, not individuals you
+declared by hand.
 
 ### Property
 
-A **property** is a named edge — the predicate in a triple. Perseus splits them into
-three kinds, the same split OWL uses, and they behave differently:
+A **property** is a named edge — the predicate in a triple. You can define as many kinds of
+property as you need; OWL provides three by default, and these are the three Perseus
+surfaces:
 
 | Kind | Points from | Points to | Example |
 | --- | --- | --- | --- |
-| **Object property** | an individual | another individual | `LOCATED_IN`, `employs`, `manages` |
-| **Datatype property** | an individual | a literal value (string, number, date) | `name`, `description`, `url` |
-| **Annotation property** | any resource | metadata about the model itself | `rdfs:label`, `rdfs:comment` |
+| **Object property** | a class | a class | `LOCATED_IN`, `employs`, `manages` |
+| **Datatype property** | a class | a datatype (string, number, date) | `name`, `description`, `url` |
+| **Annotation property** | a class | a class or a datatype | `rdfs:label`, `rdfs:comment` |
 
-Which kind you want is decided by the right-hand side. If the thing on the right is
-something you would want to describe further — it has its own attributes, its own
-relationships — it is an **object property**. If it is just a value, a string or a number,
-it is a **datatype property**.
+These definitions live in the *ontology*, so they connect classes and datatypes, not
+concrete individuals. `Person —LOCATED_IN→ City` is a property definition; the fact
+`Jane Doe —LOCATED_IN→ San Francisco` is a single edge in the knowledge graph that obeys it.
 
-`Jane Doe LOCATED_IN San Francisco` is an object property: San Francisco is a real
-entity with its own facts. `Jane Doe name "Jane Doe"` is a datatype property: the string
-is just a string. `employer` pointing at a `Company` is an object property; `employerName`
-holding a string is a datatype property. The first is usually what you want in a knowledge
-graph — the links are the point of the graph.
+Which kind you want is decided by the right-hand side. If the thing on the right is a class
+you would want to describe further — it has its own attributes, its own relationships — it
+is an **object property**. If it is just a value, a string or a number, it is a **datatype
+property**.
+
+`Person LOCATED_IN City` is an object property: a City is a real entity with its own facts.
+`Person name` ranging over a string is a datatype property: the string is just a string.
+`employer` pointing at `Company` is an object property; `employerName` holding a string is a
+datatype property. The object property is usually what you want in a knowledge graph — the
+links are the point of the graph.
 
 Annotation properties are the odd one out: they carry documentation, not domain facts.
 They are for humans and tools, and reasoners ignore them.
@@ -196,17 +232,19 @@ it blank leaves the model guessing.
 
 ### URI / IRI
 
-Every resource in an ontology has a globally unique identifier, written as a URL, shown in
-grey at the top-right of every detail panel:
+Every resource in an ontology has a globally unique identifier — a **URI** (or its
+internationalised form, an **IRI**) — shown in grey at the top-right of every detail panel:
 
 ```
 http://www.w3.org/2002/07/owl#Country
 http://example.org/ontology#employs
 ```
 
-It is an *identifier*, not an address — nothing is fetched from it. It exists so that
-two ontologies from two different teams can be merged without `Person` colliding with
-`Person`.
+It *looks* like a URL, but it is not one, and the difference matters. A URL is an *address*:
+it tells you where to fetch something, and it carries no guarantee of uniqueness. A URI is
+an *identifier*: nothing is fetched from it, and its whole purpose is to be globally unique.
+That uniqueness is what lets two ontologies from two different teams be merged without one
+team's `Person` colliding with the other's `Person`.
 
 The part after the `#` is the local name, which Perseus derives from the name you type. A
 freshly created, still-unnamed resource gets a placeholder URI with a timestamp in it
@@ -595,6 +633,12 @@ later.
 
 The **Individuals** tab holds concrete, named entities. The left panel lists each
 individual with its class in grey on the right (`San Francisco — City`).
+
+> The individuals you declare here live in the *ontology*, not in the extracted graph.
+> Declare them for the reasons covered under [Individual](#individual): as fixed enumeration
+> values, as reference entities for reconciling extracted data against, or as fixtures for
+> reasoner testing. The concrete things extraction pulls out of your documents are
+> *instances* in the knowledge graph — a separate layer that this editor does not show.
 
 ![The Individuals list. Each entry shows its class on the right](manual_assets/fig-12b-individuals-list.png)
 
