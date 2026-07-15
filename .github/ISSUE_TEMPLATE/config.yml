@@ -1,0 +1,7 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ✏️ Edit the manual directly
+    url: https://github.com/jalakoo/perseus-ontology-manual/edit/main/manual.md
+    about: >
+      Open the English Markdown source in GitHub's editor and submit your change
+      as a pull request. For the French version, edit manual.fr.md.

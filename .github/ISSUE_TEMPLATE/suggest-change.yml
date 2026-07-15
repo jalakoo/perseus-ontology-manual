@@ -1,0 +1,41 @@
+name: Suggest a change to the manual
+description: Report an error, an unclear step, or an improvement for the Perseus ontology editor manual.
+title: "Manual: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping improve the manual! If you're comfortable editing
+        Markdown, you can skip this form and use the **Edit this page on GitHub**
+        link at the bottom of any manual page to open a pull request directly.
+  - type: dropdown
+    id: language
+    attributes:
+      label: Which version?
+      options:
+        - English (manual.md)
+        - Français (manual.fr.md)
+        - Both / not sure
+    validations:
+      required: true
+  - type: input
+    id: section
+    attributes:
+      label: Section or heading
+      description: Which part of the manual is this about?
+      placeholder: e.g. Relationships
+  - type: textarea
+    id: change
+    attributes:
+      label: What should change?
+      description: >
+        Describe the error or improvement. If you can, quote the current wording
+        and suggest what it should say instead.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot (optional)
+      description: Drag an image here if it helps show the problem.

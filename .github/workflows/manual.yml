@@ -1,0 +1,55 @@
+name: Manual
+
+# Builds docs/index.html from the Markdown sources. On a pull request it only
+# verifies the build succeeds; on a push to main it commits the rebuilt site so
+# GitHub Pages serves the latest content without anyone running the build locally.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "manual.md"
+      - "manual.fr.md"
+      - "build_manual.py"
+      - "manual_assets/**"
+      - ".github/workflows/manual.yml"
+  pull_request:
+    paths:
+      - "manual.md"
+      - "manual.fr.md"
+      - "build_manual.py"
+      - "manual_assets/**"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install markdown
+
+      - name: Build docs/index.html
+        run: python3 build_manual.py
+
+      # Only on pushes to main: commit the rebuilt site back. The commit touches
+      # only docs/, which isn't in the push trigger's paths, so it won't re-run
+      # this workflow; the [skip ci] tag is a second safeguard.
+      - name: Commit rebuilt site
+        if: github.event_name == 'push'
+        run: |
+          if git diff --quiet -- docs/index.html; then
+            echo "docs/index.html already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git commit -m "Rebuild manual site [skip ci]"
+          git push

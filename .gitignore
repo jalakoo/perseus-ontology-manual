@@ -1,8 +1,57 @@
-# Source recordings — large, and not needed to build the manual.
-# The frames used as figures have already been extracted into manual_assets/.
-0_SCRIPTS/
+# ─────────────────────────────────────────────────────────────────────────────
+# What this repo carries: the manual, and the SOURCE of the films — scripts,
+# Remotion projects, configs. What it does not carry: the media. Recordings,
+# renders, and the derived asset pool are large, and every one of them can be
+# rebuilt from something (with one exception, noted below).
+#
+# Rule of thumb: if a human wrote it, it's tracked. If a machine emitted it,
+# it isn't.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The raw 4K screen captures. Large, and the repo does not need them: the frames
+# used as figures are already extracted into manual_assets/, and the clips the
+# films actually cut from are derived into 2_EDITS/assets/video-seekable/.
 1_SCREEN_RECORDINGS/
-2_EDITS/
+
+# ── 2_EDITS — track what a film is built FROM, not what it is built OUT OF ──
+
+# Dependencies. Hoisted to 2_EDITS/node_modules by the npm workspace, but npm also
+# writes per-project trees for platform-specific binaries.
+node_modules/
+
+# Rendered films. Every project emits into out/; regenerate with `npm run build`
+# in that project.
+out/
+
+# The derived asset pool (~235M): re-encoded seekable clips, extracted stills, and
+# the ElevenLabs voiceover.
+#
+# ⚠️ Not all of this is free to rebuild. The clips and stills are ffmpeg one-liners
+# (recipes are in each project's README), but assets/audio/ is SYNTHESIZED VOICEOVER
+# and re-generating it costs ElevenLabs credits — and a re-synthesis will not be
+# sample-identical, so every scene length derived from it (see each project's
+# timeline.ts) would need re-measuring. If you hand this repo to someone who has to
+# rebuild the films, ship assets/ alongside it or they will be re-recording the VO.
+2_EDITS/assets/
+
+# The same media again, copied. The Remotion projects reach the asset pool through a
+# SYMLINK at public/assets -> ../../../assets, but the two older revideo projects
+# (L1_VersionA, L1_VersionB) hold real copies there instead — 32M of duplicated mp4
+# and mp3. Ignore the copies.
+#
+# The trailing slash is doing real work: it matches directories only, and git records
+# a symlink as a blob rather than a directory. So the revideo copies are ignored while
+# the Remotion symlinks stay tracked — which is what we want, because those symlinks
+# are how each project finds its footage.
+**/public/assets/
+
+# Bundler / renderer caches
+.remotion/
+
+# HyperFrames scratch (L1_VersionA/B): thumbnail jpgs and decoded audio waveforms,
+# rebuilt on demand from the assets they describe.
+.thumbnails/
+.waveform-cache/
 
 # Scratch notes
 Untitled.md

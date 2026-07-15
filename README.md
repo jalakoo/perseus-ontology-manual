@@ -17,6 +17,8 @@ web page and as PDFs.
 - [Building](#building)
 - [Editing the manual](#editing-the-manual)
     - [Text](#text)
+    - [How readers suggest edits](#how-readers-suggest-edits)
+    - [Enabling reader edit-suggestions](#enabling-reader-edit-suggestions)
     - [Keeping the two languages in sync](#keeping-the-two-languages-in-sync)
     - [Headings, the TOC, and anchors](#headings-the-toc-and-anchors)
     - [Figures](#figures)
@@ -97,6 +99,57 @@ It also warns about missing image files. Don't ignore either warning.
 
 Edit `manual.md` (and `manual.fr.md`), then rebuild. **Never edit `docs/index.html`** — the
 next build overwrites it.
+
+On a push to `main`, the `Manual` GitHub Action (`.github/workflows/manual.yml`) rebuilds
+`docs/index.html` and commits it automatically, so a merged edit to the Markdown goes live
+without anyone running the build by hand. On a pull request it just verifies the build
+succeeds.
+
+### How readers suggest edits
+
+The floating topbar (beside the language flags and **Save as PDF**) has two buttons:
+
+- **Edit** — opens GitHub's web editor on the Markdown source (`manual.md` /
+  `manual.fr.md`, matching the current language), auto-forks, and turns the reader's
+  save into a pull request. Best for people comfortable with Markdown.
+- **Suggest** — opens a pre-filled issue (the `.github/ISSUE_TEMPLATE/` form) for
+  readers who'd rather just describe the problem.
+
+Both are language-aware and collapse to icons on narrow screens.
+
+Both point at the Markdown source, never the generated `docs/index.html`. The pull-request
+template reminds contributors of the same.
+
+### Enabling reader edit-suggestions
+
+The **Edit** / **Suggest** buttons, the issue form, and the auto-rebuild all rely on files
+already committed under `.github/` — but two repository settings have to be switched on once
+by hand (they can't be set from code):
+
+1. **Turn on Issues** — repo → **Settings** → **General** → **Features** → tick **Issues**.
+   Without it the **Suggest** button's issue form has nowhere to open.
+2. **Let the workflow commit the rebuilt site** — repo → **Settings** → **Actions** →
+   **General** → **Workflow permissions** → select **Read and write permissions** → **Save**.
+   This lets the `Manual` workflow push the regenerated `docs/index.html` back after a change
+   lands on `main`. (Leave "Allow GitHub Actions to create and approve pull requests"
+   unchecked — the workflow doesn't need it.)
+
+Everything else works with no further configuration once these files are on the default
+branch:
+
+| File | Purpose |
+| --- | --- |
+| `.github/ISSUE_TEMPLATE/suggest-change.yml` | The "Suggest a change" issue form. |
+| `.github/ISSUE_TEMPLATE/config.yml` | Adds an "Edit the manual directly" link to the new-issue chooser. |
+| `.github/PULL_REQUEST_TEMPLATE.md` | Checklist shown on every pull request. |
+| `.github/workflows/manual.yml` | Verifies the build on pull requests; rebuilds and commits `docs/` on pushes to `main`. |
+
+Two things to know:
+
+- The **Edit** button auto-forks the repo for anyone without write access and opens their
+  change as a pull request — no setup needed, but contributors need a (free) GitHub account.
+- These `.github/` files only take effect from the repository's **default branch**, so they
+  must be merged to `main` before the form, templates, or workflow appear.
 
 ### Keeping the two languages in sync
 

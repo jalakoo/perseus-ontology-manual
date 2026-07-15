@@ -30,6 +30,12 @@ ROOT = pathlib.Path(__file__).parent
 SITE = ROOT / "docs"          # GitHub Pages serves this folder
 OUT = SITE / "index.html"
 
+# Where readers' edits and suggestions go. The "Edit this page" links point at the
+# Markdown SOURCE (manual.md / manual.fr.md), never the generated docs/index.html.
+REPO = "https://github.com/jalakoo/perseus-ontology-manual"
+BRANCH = "main"
+ISSUE_TEMPLATE = "suggest-change.yml"   # see .github/ISSUE_TEMPLATE/
+
 LANGS = {
     "en": {
         "src": ROOT / "manual.md",
@@ -37,6 +43,10 @@ LANGS = {
         "toc_heading": "Table of Contents",
         "pdf": "Save as PDF",
         "contents": "Contents",
+        "bar_edit": "Edit",
+        "bar_suggest": "Suggest",
+        "edit_title": "Edit this page on GitHub",
+        "suggest_title": "Suggest a change",
     },
     "fr": {
         "src": ROOT / "manual.fr.md",
@@ -44,6 +54,10 @@ LANGS = {
         "toc_heading": "Table des matières",
         "pdf": "Enregistrer en PDF",
         "contents": "Sommaire",
+        "bar_edit": "Modifier",
+        "bar_suggest": "Suggérer",
+        "edit_title": "Modifier cette page sur GitHub",
+        "suggest_title": "Suggérer une modification",
     },
 }
 
@@ -80,6 +94,7 @@ CSS = """
   --code-bg: #f5f6f8;
   --figure-bg: #0e0e10;
   --drawer-w: 290px;
+  --bar-h: 36px;          /* shared height for every topbar control */
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
@@ -97,7 +112,7 @@ body {
   display: flex; align-items: center; gap: 8px;
   padding: 14px 18px;
 }
-.langgroup { display: flex; gap: 4px; padding: 3px; background: #eceef1; border-radius: 9px; }
+.langgroup { display: flex; align-items: center; gap: 4px; height: var(--bar-h); padding: 3px; background: #eceef1; border-radius: 9px; }
 .langbtn {
   display: grid; place-items: center; width: 38px; height: 30px; padding: 0;
   border: 0; border-radius: 6px; background: transparent; cursor: pointer;
@@ -107,11 +122,27 @@ body {
 .langbtn[aria-pressed="true"] { opacity: 1; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.14); }
 .langbtn svg { width: 24px; height: 16px; border-radius: 2px; display: block; }
 .pdfbtn {
-  font: 600 .85rem/1 inherit; color: #fff; background: var(--accent);
-  border: 0; border-radius: 8px; padding: 11px 15px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: var(--bar-h); font: 600 .85rem/1 inherit; color: #fff; background: var(--accent);
+  border: 0; border-radius: 8px; padding: 0 15px; cursor: pointer;
   box-shadow: 0 2px 10px rgba(0,0,0,.16); white-space: nowrap;
 }
 .pdfbtn:hover { filter: brightness(1.08); }
+/* "Edit" / "Suggest" links — ghost buttons that sit beside the language and PDF controls. */
+.linkbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: var(--bar-h); font: 600 .85rem/1 inherit; color: var(--fg);
+  background: #fff; border: 1px solid var(--rule); border-radius: 8px;
+  padding: 0 12px; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,.10);
+}
+.linkbtn:hover { text-decoration: none; border-color: var(--accent); color: var(--accent); }
+.linkbtn .ico { font-size: .95rem; line-height: 1; }
+/* Below this width the topbar gets crowded, so the link buttons collapse to their icons. */
+@media (max-width: 860px) {
+  .linkbtn .lbl { display: none; }
+  .linkbtn { padding: 0 10px; }
+}
 
 /* ---------- drawer ---------- */
 .drawer {
@@ -356,6 +387,7 @@ def main() -> None:
         f'<button class="langbtn" data-set-lang="fr" aria-pressed="false" '
         f'title="{fr["label"]}" aria-label="{fr["label"]}">{FLAG_FR}</button>'
         "</div>"
+        f"{bar_links(en, fr)}"
         f'<button class="pdfbtn" data-label-en="{en["pdf"]}" data-label-fr="{fr["pdf"]}" '
         f'onclick="window.print()">{en["pdf"]}</button>'
         "</div>"
@@ -389,6 +421,36 @@ def main() -> None:
 
     if "--pdf" in sys.argv:
         export_pdf()
+
+
+def bar_links(en: dict, fr: dict) -> str:
+    """The "Edit" and "Suggest" topbar buttons, one <a> per language.
+
+    Both target the Markdown SOURCE — "Edit" opens GitHub's web editor on
+    manual.md / manual.fr.md (auto-forks and files a PR), "Suggest" opens a
+    pre-filled issue. They deliberately never link docs/index.html, which is this
+    generated file. The two language copies coexist and the existing setLang()
+    show/hide (it toggles every [data-lang] element) swaps between them; the
+    French copies start hidden so the default English view has no flash.
+    """
+    issue_url = f"{REPO}/issues/new?template={ISSUE_TEMPLATE}"
+
+    def link(href: str, icon: str, label: str, title: str, code: str) -> str:
+        hide = " hidden" if code != "en" else ""
+        return (
+            f'<a class="linkbtn" data-lang="{code}"{hide} href="{href}" '
+            f'title="{escape_attr(title)}" aria-label="{escape_attr(title)}">'
+            f'<span class="ico" aria-hidden="true">{icon}</span>'
+            f'<span class="lbl">{escape_attr(label)}</span></a>'
+        )
+
+    out = []
+    for code, cfg in (("en", en), ("fr", fr)):
+        edit_url = f"{REPO}/edit/{BRANCH}/{cfg['src'].name}"
+        out.append(link(edit_url, "✏️", cfg["bar_edit"], cfg["edit_title"], code))
+    for code, cfg in (("en", en), ("fr", fr)):
+        out.append(link(issue_url, "💬", cfg["bar_suggest"], cfg["suggest_title"], code))
+    return "".join(out)
 
 
 def strip_toc_section(text: str, heading: str) -> str:
