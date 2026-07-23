@@ -60,14 +60,12 @@ extract whatever it finds. An **ontology** is how you tell it what it is *allowe
 find: which kinds of things exist in your domain, what attributes they have, and how
 they can be connected to one another.
 
-The ontology editor is where you inspect and hand-tune that schema. Use it to:
+The ontology editor is where you inspect and hand-tune that schema. Use it to review an ontology that Perseus generated from your documents, and fix anything you want:
 
-- Review an ontology that Perseus generated from your documents, and fix what it got wrong.
-- Add a class or a relationship the generator missed.
-- Rename things so the extracted graph uses your team's vocabulary.
-- Declare a few individuals — fixed enumeration values, or reference entities — so
-  extraction has anchors to reconcile its instances against.
-
+- Add a class or a relationship.
+- Rename things more precisely based on your team's vocabulary.
+- Declare a few individuals — fixed enumeration values, or reference entities — so extraction has anchors to reconcile its instances against.
+  
 An ontology editor is a schema editor. It is closer in spirit to editing a database schema
 than to editing data — except the "schema" here is itself expressed as a graph.
 
